@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, Users, DollarSign, Plus, Check, X, ArrowLeft, Trash2 } from 'lucide-react'
+import { Calendar, Users, DollarSign, Plus, Check, X, ArrowLeft, Trash2, Edit, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Event, ParticipantWithStatus } from '@/types'
@@ -20,6 +20,8 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [quickPayLoading, setQuickPayLoading] = useState<string | null>(null)
+  const [showActions, setShowActions] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchEvent = async () => {
     try {
@@ -134,6 +136,28 @@ export default function EventDetailPage() {
     }
   }
 
+  const handleDeleteEvent = async () => {
+    if (!confirm(`「${event?.name}」を削除してもよろしいですか？\nこの操作は取り消せません。`)) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        router.push('/')
+      } else {
+        throw new Error('イベントの削除に失敗しました')
+      }
+    } catch (error) {
+      alert('エラーが発生しました')
+      console.error(error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
@@ -172,7 +196,43 @@ export default function EventDetailPage() {
           </Link>
           
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{event.name}</h1>
+            <div className="flex items-start justify-between mb-4">
+              <h1 className="text-3xl font-bold text-gray-800">{event.name}</h1>
+              
+              {/* アクションメニュー */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowActions(!showActions)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5 text-gray-600" />
+                </button>
+                
+                {showActions && (
+                  <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10 min-w-32">
+                    <Link
+                      href={`/events/${eventId}/edit`}
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setShowActions(false)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      編集
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setShowActions(false)
+                        handleDeleteEvent()
+                      }}
+                      disabled={isDeleting}
+                      className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {isDeleting ? '削除中...' : '削除'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="flex items-center text-gray-600">
