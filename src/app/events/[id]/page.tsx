@@ -147,8 +147,8 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">イベントが見つかりません</h1>
-          <Link href="/events" className="text-emerald-600 hover:text-emerald-700">
-            イベント一覧に戻る
+          <Link href="/" className="text-emerald-600 hover:text-emerald-700">
+            ホームに戻る
           </Link>
         </div>
       </div>
@@ -164,11 +164,11 @@ export default function EventDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link
-            href="/events"
+            href="/"
             className="inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            イベント一覧に戻る
+            ホームに戻る
           </Link>
           
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">

@@ -38,7 +38,7 @@ export default async function Home() {
           <div className="mb-8">
             <Link
               href="/events/new"
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 border-l-4 border-emerald-500 group block max-w-md mx-auto"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 border-l-4 border-emerald-500 group block"
             >
               <div className="flex items-center">
                 <div className="bg-emerald-100 p-3 rounded-full mr-4 group-hover:bg-emerald-200 transition-colors">
