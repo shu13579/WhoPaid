@@ -1,20 +1,8 @@
 {
   "version": 2,
   "name": "whopaid",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "env": {
-    "DATABASE_URL": "file:./data/production.db"
+    "DATABASE_URL": "file:/tmp/production.db"
   },
   "functions": {
     "src/app/api/**/*.ts": {
