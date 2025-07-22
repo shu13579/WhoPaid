@@ -19,6 +19,7 @@ export default function EventDetailPage() {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [quickPayLoading, setQuickPayLoading] = useState<string | null>(null)
 
   const fetchEvent = async () => {
     try {
@@ -83,6 +84,34 @@ export default function EventDetailPage() {
       console.error(error)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleQuickPayment = async (participantId: string) => {
+    setQuickPayLoading(participantId)
+    try {
+      const response = await fetch('/api/payments/quick', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          participantId
+        }),
+      })
+
+      if (response.ok) {
+        fetchEvent() // データを再取得
+      } else {
+        const error = await response.json()
+        alert(error.error || '支払いの記録に失敗しました')
+      }
+    } catch (error) {
+      alert('エラーが発生しました')
+      console.error(error)
+    } finally {
+      setQuickPayLoading(null)
     }
   }
 
@@ -194,84 +223,102 @@ export default function EventDetailPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
+                    <div className="flex items-center flex-1">
                       {participant.isPaidInFull ? (
-                        <Check className="w-5 h-5 text-green-600 mr-2" />
+                        <Check className="w-5 h-5 text-green-600 mr-3" />
                       ) : (
-                        <X className="w-5 h-5 text-gray-400 mr-2" />
+                        <X className="w-5 h-5 text-gray-400 mr-3" />
                       )}
-                      <span className="font-medium text-gray-800">
-                        {participant.name}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className={`font-medium ${
-                        participant.isPaidInFull ? 'text-green-600' : 'text-orange-600'
-                      }`}>
-                        {formatCurrency(participant.totalPaid)} / {formatCurrency(participant.expectedAmount)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {participant.payments.length}件の支払い
+                      <div className="flex-1">
+                        <span className="font-medium text-gray-800">
+                          {participant.name}
+                        </span>
+                        <div className={`text-sm font-medium ${
+                          participant.isPaidInFull ? 'text-green-600' : 'text-orange-600'
+                        }`}>
+                          {formatCurrency(participant.totalPaid)} / {formatCurrency(participant.expectedAmount)}
+                        </div>
                       </div>
                     </div>
+                    
+                    {!participant.isPaidInFull && (
+                      <Button
+                        onClick={() => handleQuickPayment(participant.id)}
+                        disabled={quickPayLoading === participant.id}
+                        size="sm"
+                        className="ml-3"
+                      >
+                        {quickPayLoading === participant.id ? '記録中...' : '支払い完了'}
+                      </Button>
+                    )}
+                    
+                    {participant.isPaidInFull && (
+                      <div className="text-sm text-green-600 font-medium ml-3">
+                        完了済み
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 支払い記録フォーム */}
+          {/* カスタム支払い記録フォーム（折りたたみ式） */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">支払いを記録</h2>
-              
-              <form onSubmit={handleAddPayment} className="space-y-4">
-                <div>
-                  <label htmlFor="participant" className="block text-sm font-medium text-gray-700 mb-2">
-                    支払った人
-                  </label>
-                  <select
-                    id="participant"
-                    value={selectedParticipant}
-                    onChange={(e) => setSelectedParticipant(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    required
+            <details className="bg-white rounded-xl shadow-md">
+              <summary className="p-6 cursor-pointer hover:bg-gray-50 rounded-xl font-medium text-gray-700">
+                カスタム金額で支払いを記録
+              </summary>
+              <div className="px-6 pb-6">
+                <form onSubmit={handleAddPayment} className="space-y-4">
+                  <div>
+                    <label htmlFor="participant" className="block text-sm font-medium text-gray-700 mb-2">
+                      支払った人
+                    </label>
+                    <select
+                      id="participant"
+                      value={selectedParticipant}
+                      onChange={(e) => setSelectedParticipant(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">選択してください</option>
+                      {event.participants.map((participant) => (
+                        <option key={participant.id} value={participant.id}>
+                          {participant.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                      支払い金額
+                    </label>
+                    <input
+                      type="number"
+                      id="amount"
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="3000"
+                      min="1"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    variant="secondary"
+                    className="w-full"
                   >
-                    <option value="">選択してください</option>
-                    {event.participants.map((participant) => (
-                      <option key={participant.id} value={participant.id}>
-                        {participant.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-                    支払い金額
-                  </label>
-                  <input
-                    type="number"
-                    id="amount"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    placeholder="3000"
-                    min="1"
-                    required
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {submitting ? '記録中...' : '支払いを記録'}
-                </Button>
-              </form>
-            </div>
+                    <Plus className="w-4 h-4 mr-2" />
+                    {submitting ? '記録中...' : 'カスタム金額で記録'}
+                  </Button>
+                </form>
+              </div>
+            </details>
 
             {/* 支払い履歴 */}
             <div className="bg-white rounded-xl shadow-md p-6">
