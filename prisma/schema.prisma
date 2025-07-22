@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  totalAmount Int      // 総額（円）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  participants Participant[]
+  payments     Payment[]
+}
+
+model Participant {
+  id      String @id @default(cuid())
+  name    String
+  eventId String
+  
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payments Payment[]
+  
+  @@unique([eventId, name]) // 同じイベント内で同名の参加者は不可
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  amount        Int      // 支払い金額（円）
+  createdAt     DateTime @default(now())
+  eventId       String
+  participantId String
+  
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
