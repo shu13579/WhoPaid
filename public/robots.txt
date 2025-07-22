@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://whopaid.vercel.app/sitemap.xml
+Sitemap: https://whopaid-kappa.vercel.app/sitemap.xml
 
 # 検索エンジン最適化
 # WhoPaid - 割り勘・立て替え支払い管理アプリ

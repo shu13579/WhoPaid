@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WhoPaid - フーペイド | 割り勘・立て替え管理アプリ",
     description: "誰からお金をもらったか忘れない！飲み会・パーティーの支払い管理を簡単に。ワンクリック記録でストレスフリー。",
-    url: "https://whopaid.vercel.app",
+    url: "https://whopaid-kappa.vercel.app",
     siteName: "WhoPaid",
     locale: "ja_JP",
     type: "website",
