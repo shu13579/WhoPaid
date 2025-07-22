@@ -3,12 +3,13 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const event = await prisma.event.findUnique({
       where: {
-        id: params.id
+        id
       },
       include: {
         participants: {
@@ -46,9 +47,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { name, totalAmount, participantNames } = body
 
@@ -61,7 +63,7 @@ export async function PUT(
 
     // 既存の参加者を取得
     const existingEvent = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { participants: true }
     })
 
@@ -76,7 +78,7 @@ export async function PUT(
     const updatedEvent = await prisma.$transaction(async (tx) => {
       // イベント情報を更新
       const event = await tx.event.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           name,
           totalAmount
@@ -85,20 +87,20 @@ export async function PUT(
 
       // 既存の参加者を削除（支払い記録も自動削除される）
       await tx.participant.deleteMany({
-        where: { eventId: params.id }
+        where: { eventId: id }
       })
 
       // 新しい参加者を作成
       await tx.participant.createMany({
         data: participantNames.map((name: string) => ({
           name: name.trim(),
-          eventId: params.id
+          eventId: id
         }))
       })
 
       // 更新されたイベントを取得
       return await tx.event.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: {
           participants: {
             include: {
@@ -126,12 +128,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await prisma.event.delete({
       where: {
-        id: params.id
+        id
       }
     })
 
