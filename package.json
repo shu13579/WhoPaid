@@ -1,7 +1,16 @@
 {
-  "name": "party-payment-tracker",
-  "version": "0.1.0",
+  "name": "whopaid",
+  "version": "1.0.0",
   "private": true,
+  "description": "誰からお金をもらったか忘れない！割り勘・立て替えの支払い管理Webアプリ",
+  "keywords": ["割り勘", "立て替え", "支払い管理", "飲み会", "パーティー", "お金回収", "グループ支払い", "next.js", "react", "typescript"],
+  "author": "shu13579",
+  "license": "MIT",
+  "homepage": "https://github.com/shu13579/WhoPaid",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shu13579/WhoPaid.git"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

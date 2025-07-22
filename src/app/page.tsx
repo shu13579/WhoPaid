@@ -23,13 +23,13 @@ export default async function Home() {
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Party Payment Tracker
+            WhoPaid - フーペイド
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            飲み会の支払い管理アプリ
+            誰からお金をもらったか忘れない！
           </p>
           <p className="text-gray-500">
-            誰からお金を預かったかを簡単に記録・管理
+            割り勘・立て替えの支払い管理アプリ
           </p>
         </header>
 
@@ -49,7 +49,7 @@ export default async function Home() {
                     新しいイベント
                   </h2>
                   <p className="text-gray-600 text-sm">
-                    飲み会の支払い管理を開始
+                    立て替え・割り勘の支払い管理を開始
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-emerald-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@ export default async function Home() {
                   支払い記録
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  誰からお金を預かったかを簡単に記録
+                  誰からお金をもらったかワンクリックで記録
                 </p>
               </div>
               <div className="text-center">
