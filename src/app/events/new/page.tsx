@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, X, Users, Yen } from 'lucide-react'
+import { Plus, X, Users, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export default function NewEventPage() {
@@ -100,7 +100,7 @@ export default function NewEventPage() {
 
               <div>
                 <label htmlFor="totalAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                  <Yen className="inline w-4 h-4 mr-1" />
+                  <DollarSign className="inline w-4 h-4 mr-1" />
                   総額（円）
                 </label>
                 <input

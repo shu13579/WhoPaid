@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, Users, Yen, Plus, Check, X, ArrowLeft, Trash2 } from 'lucide-react'
+import { Calendar, Users, DollarSign, Plus, Check, X, ArrowLeft, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Event, ParticipantWithStatus } from '@/types'
@@ -152,7 +152,7 @@ export default function EventDetailPage() {
               </div>
               
               <div className="flex items-center text-gray-600">
-                <Yen className="w-5 h-5 mr-2" />
+                <DollarSign className="w-5 h-5 mr-2" />
                 <span>総額 {formatCurrency(event.totalAmount)}</span>
               </div>
               

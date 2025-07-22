@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Calendar, Users, Yen, Plus } from 'lucide-react'
+import { Calendar, Users, DollarSign, Plus } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -81,7 +81,7 @@ export default async function EventsPage() {
                         </div>
                         
                         <div className="flex items-center text-gray-600">
-                          <Yen className="w-4 h-4 mr-2" />
+                          <DollarSign className="w-4 h-4 mr-2" />
                           <span className="text-sm">
                             総額 {formatCurrency(event.totalAmount)}
                           </span>
