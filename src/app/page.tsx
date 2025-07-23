@@ -11,8 +11,30 @@ export default function Home() {
   const [showDataMenu, setShowDataMenu] = useState(false)
 
   const loadEvents = () => {
-    const loadedEvents = getEvents().slice(0, 5) // Get latest 5 events
-    setEvents(loadedEvents)
+    const allEvents = getEvents()
+    
+    // Sort events: incomplete payments first, then by creation date (newest first)
+    const sortedEvents = allEvents.sort((a, b) => {
+      const aTotalPaid = a.participants.reduce((sum, participant) =>
+        sum + participant.payments.reduce((pSum, payment) => pSum + payment.amount, 0), 0
+      )
+      const bTotalPaid = b.participants.reduce((sum, participant) =>
+        sum + participant.payments.reduce((pSum, payment) => pSum + payment.amount, 0), 0
+      )
+      
+      const aComplete = aTotalPaid >= a.totalAmount
+      const bComplete = bTotalPaid >= b.totalAmount
+      
+      // If completion status is different, incomplete comes first
+      if (aComplete !== bComplete) {
+        return aComplete ? 1 : -1
+      }
+      
+      // If same completion status, sort by creation date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+    
+    setEvents(sortedEvents.slice(0, 5)) // Get top 5 events
   }
 
   useEffect(() => {
@@ -122,7 +144,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            WhoPaid - フーペイド
+            WhoPaid
           </h1>
           <p className="text-xl text-gray-600 mb-2">
             誰からお金をもらったか忘れない！

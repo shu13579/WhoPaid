@@ -24,3 +24,48 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fix mobile input text color issues */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  -webkit-text-fill-color: #374151 !important;
+  -webkit-opacity: 1 !important;
+  color: #374151 !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    -webkit-text-fill-color: #d1d5db !important;
+    color: #d1d5db !important;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  select:focus,
+  textarea:focus {
+    -webkit-text-fill-color: #f9fafb !important;
+    color: #f9fafb !important;
+  }
+}
