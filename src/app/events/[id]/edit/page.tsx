@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, X, Users, DollarSign, ArrowLeft, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Event } from '@/types'
+import { getEvent, updateEvent, type Event } from '@/lib/storage'
 
 export default function EditEventPage() {
   const params = useParams()
@@ -20,11 +20,10 @@ export default function EditEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchEvent = () => {
       try {
-        const response = await fetch(`/api/events/${eventId}`)
-        if (response.ok) {
-          const eventData: Event = await response.json()
+        const eventData = getEvent(eventId)
+        if (eventData) {
           setEvent(eventData)
           setEventName(eventData.name)
           setTotalAmount(eventData.totalAmount.toString())
@@ -60,14 +59,14 @@ export default function EditEventPage() {
     setParticipants(updated)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!eventName || !totalAmount || participants.some(p => !p.trim())) {
       alert('すべての項目を入力してください')
       return
     }
 
-    const hasPayments = event?.payments && event.payments.length > 0
+    const hasPayments = event?.participants.some(p => p.payments.length > 0)
     if (hasPayments) {
       const confirmUpdate = confirm(
         'このイベントには既に支払い記録があります。\n参加者を変更すると、既存の支払い記録はすべて削除されます。\n続行しますか？'
@@ -78,19 +77,13 @@ export default function EditEventPage() {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: eventName,
-          totalAmount: parseInt(totalAmount),
-          participantNames: participants.filter(p => p.trim())
-        }),
+      const updatedEvent = updateEvent(eventId, {
+        name: eventName,
+        totalAmount: parseInt(totalAmount),
+        participantNames: participants.filter(p => p.trim())
       })
 
-      if (response.ok) {
+      if (updatedEvent) {
         router.push(`/events/${eventId}`)
       } else {
         throw new Error('イベントの更新に失敗しました')
@@ -193,7 +186,7 @@ export default function EditEventPage() {
                   <Users className="inline w-4 h-4 mr-1" />
                   参加者
                 </label>
-                {event.payments && event.payments.length > 0 && (
+                {event.participants.some(p => p.payments.length > 0) && (
                   <div className="mb-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
                     <p className="text-sm text-yellow-800">
                       ⚠️ 参加者を変更すると、既存の支払い記録がすべて削除されます。

@@ -3,7 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "description": "誰からお金をもらったか忘れない！割り勘・立て替えの支払い管理Webアプリ",
-  "keywords": ["割り勘", "立て替え", "支払い管理", "飲み会", "パーティー", "お金回収", "グループ支払い", "next.js", "react", "typescript"],
+  "keywords": [
+    "割り勘",
+    "立て替え",
+    "支払い管理",
+    "飲み会",
+    "パーティー",
+    "お金回収",
+    "グループ支払い",
+    "next.js",
+    "react",
+    "typescript"
+  ],
   "author": "shu13579",
   "license": "MIT",
   "homepage": "https://github.com/shu13579/WhoPaid",
@@ -18,11 +29,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^6.12.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.525.0",
     "next": "15.4.2",
-    "prisma": "^6.12.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.60.0",

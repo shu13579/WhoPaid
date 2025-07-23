@@ -1,64 +1,126 @@
+'use client'
+
 import Link from 'next/link'
-import { Plus, Users, CreditCard, Calendar, DollarSign } from 'lucide-react'
-import { prisma } from '@/lib/prisma'
+import { Plus, Users, CreditCard, Calendar, DollarSign, Download, Upload, Settings } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { getEvents, exportData, importData, clearAllData, type Event } from '@/lib/storage'
+import { useEffect, useState } from 'react'
 
-// Force dynamic rendering to avoid build-time database calls
-export const dynamic = 'force-dynamic'
+export default function Home() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [showDataMenu, setShowDataMenu] = useState(false)
 
-type EventWithRelations = {
-  id: string
-  name: string
-  totalAmount: number
-  createdAt: Date
-  updatedAt: Date
-  participants: {
-    id: string
-    name: string
-    eventId: string
-    payments: {
-      id: string
-      amount: number
-      createdAt: Date
-      eventId: string
-      participantId: string
-    }[]
-  }[]
-  payments: {
-    id: string
-    amount: number
-    createdAt: Date
-    eventId: string
-    participantId: string
-  }[]
-}
+  const loadEvents = () => {
+    const loadedEvents = getEvents().slice(0, 5) // Get latest 5 events
+    setEvents(loadedEvents)
+  }
 
-export default async function Home() {
-  let events: EventWithRelations[] = []
-  try {
-    const result = await prisma.event.findMany({
-      include: {
-        participants: {
-          include: {
-            payments: true
-          }
-        },
-        payments: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 5
-    })
-    events = result as EventWithRelations[]
-  } catch (error) {
-    console.error('Failed to fetch events:', error)
-    // Return empty events array on error
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
+  const handleExport = () => {
+    try {
+      const data = exportData()
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `whopaid-backup-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setShowDataMenu(false)
+    } catch (error) {
+      alert('エクスポートに失敗しました')
+      console.error(error)
+    }
+  }
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string
+        const success = importData(content)
+        if (success) {
+          loadEvents()
+          alert('データのインポートが完了しました')
+        } else {
+          alert('不正なファイル形式です')
+        }
+      } catch (error) {
+        alert('インポートに失敗しました')
+        console.error(error)
+      }
+    }
+    reader.readAsText(file)
+    setShowDataMenu(false)
+    // Reset input
+    event.target.value = ''
+  }
+
+  const handleClearData = () => {
+    if (confirm('すべてのデータを削除しますか？\nこの操作は取り消せません。')) {
+      clearAllData()
+      loadEvents()
+      setShowDataMenu(false)
+      alert('データを削除しました')
+    }
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
       <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-12">
+        <header className="text-center mb-12 relative">
+          <div className="absolute top-0 right-0">
+            <div className="relative">
+              <button
+                onClick={() => setShowDataMenu(!showDataMenu)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                title="データ管理"
+              >
+                <Settings className="w-6 h-6 text-gray-600" />
+              </button>
+              
+              {showDataMenu && (
+                <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10 min-w-48">
+                  <button
+                    onClick={handleExport}
+                    className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    データをエクスポート
+                  </button>
+                  
+                  <label className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2" />
+                    データをインポート
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
+                  </label>
+                  
+                  <hr className="my-2" />
+                  
+                  <button
+                    onClick={handleClearData}
+                    className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    全データを削除
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
             WhoPaid - フーペイド
           </h1>
@@ -102,7 +164,9 @@ export default async function Home() {
               <h2 className="text-2xl font-bold text-gray-800 mb-6">最近のイベント</h2>
               <div className="space-y-4">
                 {events.map((event) => {
-                  const totalPaid = event.payments.reduce((sum, payment) => sum + payment.amount, 0)
+                  const totalPaid = event.participants.reduce((sum, participant) => 
+                    sum + participant.payments.reduce((pSum, payment) => pSum + payment.amount, 0), 0
+                  )
                   const remainingAmount = event.totalAmount - totalPaid
                   const paidParticipants = event.participants.filter(p => 
                     p.payments.reduce((sum, payment) => sum + payment.amount, 0) > 0

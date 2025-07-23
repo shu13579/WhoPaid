@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, X, Users, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { createEvent } from '@/lib/storage'
 
 export default function NewEventPage() {
   const router = useRouter()
@@ -38,24 +39,12 @@ export default function NewEventPage() {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: eventName,
-          totalAmount: parseInt(totalAmount),
-          participantNames: participants.filter(p => p.trim())
-        }),
-      })
-
-      if (response.ok) {
-        const event = await response.json()
-        router.push(`/events/${event.id}`)
-      } else {
-        throw new Error('イベントの作成に失敗しました')
-      }
+      const event = createEvent(
+        eventName,
+        parseInt(totalAmount),
+        participants.filter(p => p.trim())
+      )
+      router.push(`/events/${event.id}`)
     } catch (error) {
       alert('エラーが発生しました')
       console.error(error)

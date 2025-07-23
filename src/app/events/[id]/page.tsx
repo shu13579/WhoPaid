@@ -6,7 +6,13 @@ import Link from 'next/link'
 import { Calendar, Users, DollarSign, Plus, Check, X, ArrowLeft, Trash2, Edit, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { Event, ParticipantWithStatus } from '@/types'
+import { getEvent, addPayment, deletePayment, deleteEvent, type Event, type Participant } from '@/lib/storage'
+
+interface ParticipantWithStatus extends Participant {
+  totalPaid: number
+  expectedAmount: number
+  isPaidInFull: boolean
+}
 
 export default function EventDetailPage() {
   const params = useParams()
@@ -23,11 +29,10 @@ export default function EventDetailPage() {
   const [showActions, setShowActions] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const fetchEvent = async () => {
+  const fetchEvent = () => {
     try {
-      const response = await fetch(`/api/events/${eventId}`)
-      if (response.ok) {
-        const eventData: Event = await response.json()
+      const eventData = getEvent(eventId)
+      if (eventData) {
         setEvent(eventData)
         
         const expectedPerPerson = Math.ceil(eventData.totalAmount / eventData.participants.length)
@@ -51,6 +56,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     fetchEvent()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   const handleAddPayment = async (e: React.FormEvent) => {
@@ -62,19 +68,8 @@ export default function EventDetailPage() {
 
     setSubmitting(true)
     try {
-      const response = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId,
-          participantId: selectedParticipant,
-          amount: parseInt(paymentAmount)
-        }),
-      })
-
-      if (response.ok) {
+      const payment = addPayment(eventId, selectedParticipant, parseInt(paymentAmount))
+      if (payment) {
         setSelectedParticipant('')
         setPaymentAmount('')
         fetchEvent() // データを再取得
@@ -90,24 +85,20 @@ export default function EventDetailPage() {
   }
 
   const handleQuickPayment = async (participantId: string) => {
+    if (!event) return
+    
     setQuickPayLoading(participantId)
     try {
-      const response = await fetch('/api/payments/quick', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId,
-          participantId
-        }),
-      })
-
-      if (response.ok) {
+      const participant = participantsWithStatus.find(p => p.id === participantId)
+      if (!participant) return
+      
+      const remainingAmount = participant.expectedAmount - participant.totalPaid
+      const payment = addPayment(eventId, participantId, remainingAmount)
+      
+      if (payment) {
         fetchEvent() // データを再取得
       } else {
-        const error = await response.json()
-        alert(error.error || '支払いの記録に失敗しました')
+        alert('支払いの記録に失敗しました')
       }
     } catch (error) {
       alert('エラーが発生しました')
@@ -117,15 +108,12 @@ export default function EventDetailPage() {
     }
   }
 
-  const handleDeletePayment = async (paymentId: string) => {
+  const handleDeletePayment = async (participantId: string, paymentId: string) => {
     if (!confirm('この支払い記録を削除しますか？')) return
 
     try {
-      const response = await fetch(`/api/payments/${paymentId}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
+      const success = deletePayment(eventId, participantId, paymentId)
+      if (success) {
         fetchEvent() // データを再取得
       } else {
         throw new Error('支払い記録の削除に失敗しました')
@@ -141,11 +129,8 @@ export default function EventDetailPage() {
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
+      const success = deleteEvent(eventId)
+      if (success) {
         router.push('/')
       } else {
         throw new Error('イベントの削除に失敗しました')
@@ -179,7 +164,9 @@ export default function EventDetailPage() {
     )
   }
 
-  const totalPaid = event.payments.reduce((sum, payment) => sum + payment.amount, 0)
+  const totalPaid = event.participants.reduce((sum, participant) =>
+    sum + participant.payments.reduce((pSum, payment) => pSum + payment.amount, 0), 0
+  )
   const remainingAmount = event.totalAmount - totalPaid
   const expectedPerPerson = Math.ceil(event.totalAmount / event.participants.length)
 
@@ -384,38 +371,40 @@ export default function EventDetailPage() {
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">支払い履歴</h2>
               
-              {event.payments.length === 0 ? (
+              {event.participants.every(p => p.payments.length === 0) ? (
                 <div className="text-gray-500 text-center py-8">
                   まだ支払い記録がありません
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {event.payments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <span className="font-medium text-gray-800">
-                          {payment.participant.name}
-                        </span>
-                        <div className="text-sm text-gray-500">
-                          {formatDate(new Date(payment.createdAt))}
+                  {event.participants.flatMap(participant =>
+                    participant.payments.map(payment => (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <span className="font-medium text-gray-800">
+                            {participant.name}
+                          </span>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(new Date(payment.createdAt))}
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="font-medium text-emerald-600 mr-2">
+                            {formatCurrency(payment.amount)}
+                          </span>
+                          <button
+                            onClick={() => handleDeletePayment(participant.id, payment.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center">
-                        <span className="font-medium text-emerald-600 mr-2">
-                          {formatCurrency(payment.amount)}
-                        </span>
-                        <button
-                          onClick={() => handleDeletePayment(payment.id)}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               )}
             </div>
