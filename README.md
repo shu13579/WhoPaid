@@ -45,21 +45,29 @@ WhoPaidは、そんな支払い管理の悩みを解決するWebアプリです�
 ## 🛠 技術スタック
 
 ### フロントエンド
-- **Next.js 15.4** - React フレームワーク
-- **TypeScript** - 型安全な開発
-- **Tailwind CSS** - モダンなスタイリング
-- **Lucide React** - 美しいアイコン
+- **Next.js 15.4** - Reactフレームワーク（App Router使用）
+- **React 19.1** - UIライブラリ
+- **TypeScript 5** - 型安全な開発
+- **Tailwind CSS 4** - モダンなユーティリティファーストCSS
+- **Lucide React** - 美しいアイコンライブラリ
+- **React Hook Form** - フォーム管理
+- **clsx & tailwind-merge** - 条件付きクラス名管理
 
-### バックエンド・データベース
-- **Next.js App Router** - フルスタック開発
-- **Prisma ORM** - タイプセーフなデータベース操作
-- **SQLite** - 軽量データベース
-- **RESTful API** - 標準的なAPI設計
+### データ管理・状態
+- **localStorage** - ブラウザローカルストレージ（データ永続化）
+- **Custom Storage API** - タイプセーフなローカルストレージ操作
+- **Client-side State Management** - Reactの状態管理
 
-### 開発・デプロイ
-- **Vercel** - 本番環境デプロイ
-- **GitHub Actions** - CI/CD
-- **ESLint & Prettier** - コード品質
+### 開発・品質管理
+- **ESLint 9** - コード品質とスタイルガイド
+- **Next.js ESLint Config** - Next.js特化設定
+- **TypeScript Strict Mode** - 厳格な型チェック
+- **PostCSS** - CSS処理
+
+### デプロイ・インフラ
+- **Vercel** - 本番環境デプロイとホスティング
+- **Next.js Turbopack** - 高速開発サーバー
+- **Static Site Generation (SSS)** - 静的サイト生成
 
 ## 🚀 セットアップ方法
 
@@ -77,22 +85,34 @@ cd WhoPaid
 # 依存関係をインストール
 npm install
 
-# データベースをセットアップ
-npx prisma generate
-npx prisma db push
-
-# 開発サーバーを起動
+# 開発サーバーを起動（Turbopack使用で高速起動）
 npm run dev
+
+# または通常モードで起動
+npm run dev -- --no-turbo
 ```
 
 アプリケーションは `http://localhost:3000` でアクセスできます。
 
-### 環境変数の設定
+### 追加のコマンド
 
 ```bash
-# .env ファイルを作成
-DATABASE_URL="file:./dev.db"
+# 本番ビルド
+npm run build
+
+# 本番サーバー起動
+npm run start
+
+# コード品質チェック
+npm run lint
 ```
+
+### データの保存について
+
+このアプリケーションはブラウザの **localStorage** を使用してデータを保存します。
+- サーバーサイドのデータベースは使用しません
+- データはブラウザローカルに保存されるため、プライバシーが保護されます
+- 同じブラウザからアクセスすれば、データは永続化されます
 
 ## 📱 使い方
 
@@ -131,10 +151,13 @@ DATABASE_URL="file:./dev.db"
 
 ### 🚧 開発予定
 - [ ] PWA対応（オフライン利用可能）
-- [ ] エクスポート機能（CSV、PDF）
-- [ ] 通知機能（未払い催促）
+- [ ] データエクスポート機能（CSV、JSON）
+- [ ] データインポート・バックアップ機能
+- [ ] テーマ切り替え（ダーク/ライトモード）
+- [ ] 多言語対応（英語、中国語）
 - [ ] QRコード決済連携
-- [ ] グループ機能（複数管理者）
+- [ ] 支払い催促機能
+- [ ] 統計・分析機能
 
 ## 🤝 コントリビューション
 
