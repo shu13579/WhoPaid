@@ -47,6 +47,17 @@ textarea:focus {
   color: #111827 !important;
 }
 
+/* Placeholder styling for light mode */
+input[type="text"]::placeholder,
+input[type="number"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   input[type="text"],
@@ -55,8 +66,10 @@ textarea:focus {
   input[type="password"],
   select,
   textarea {
-    -webkit-text-fill-color: #d1d5db !important;
-    color: #d1d5db !important;
+    -webkit-text-fill-color: #e5e7eb !important;
+    color: #e5e7eb !important;
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
   }
 
   input[type="text"]:focus,
@@ -67,5 +80,18 @@ textarea:focus {
   textarea:focus {
     -webkit-text-fill-color: #f9fafb !important;
     color: #f9fafb !important;
+    background-color: #4b5563 !important;
+    border-color: #6b7280 !important;
+  }
+
+  /* Placeholder styling for dark mode */
+  input[type="text"]::placeholder,
+  input[type="number"]::placeholder,
+  input[type="email"]::placeholder,
+  input[type="password"]::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+    -webkit-text-fill-color: #9ca3af !important;
+    opacity: 1 !important;
   }
 }
