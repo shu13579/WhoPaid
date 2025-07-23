@@ -3,21 +3,58 @@ import { Plus, Users, CreditCard, Calendar, DollarSign } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic'
+
+type EventWithRelations = {
+  id: string
+  name: string
+  totalAmount: number
+  createdAt: Date
+  updatedAt: Date
+  participants: {
+    id: string
+    name: string
+    eventId: string
+    payments: {
+      id: string
+      amount: number
+      createdAt: Date
+      eventId: string
+      participantId: string
+    }[]
+  }[]
+  payments: {
+    id: string
+    amount: number
+    createdAt: Date
+    eventId: string
+    participantId: string
+  }[]
+}
+
 export default async function Home() {
-  const events = await prisma.event.findMany({
-    include: {
-      participants: {
-        include: {
-          payments: true
-        }
+  let events: EventWithRelations[] = []
+  try {
+    const result = await prisma.event.findMany({
+      include: {
+        participants: {
+          include: {
+            payments: true
+          }
+        },
+        payments: true
       },
-      payments: true
-    },
-    orderBy: {
-      createdAt: 'desc'
-    },
-    take: 5
-  })
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 5
+    })
+    events = result as EventWithRelations[]
+  } catch (error) {
+    console.error('Failed to fetch events:', error)
+    // Return empty events array on error
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
       <div className="container mx-auto px-4 py-8">
